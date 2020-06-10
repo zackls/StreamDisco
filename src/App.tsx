@@ -1,26 +1,73 @@
 import React from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import * as data from "./data.json";
+import Page from "./Page";
+import { withRouter, RouteComponentProps } from "react-router-dom";
+import { streamTitleToHashLocation, mod } from "./util";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+// maybe eventually store as a cookie, or in redux if i decide its worth it
+interface State {
+  volume: number;
+  currentStreamIndex: number;
 }
 
-export default App;
+interface Props {}
+
+// since this app is so small+shallow, this component's state serves as the main
+// storage
+class App extends React.Component<Props & RouteComponentProps, State> {
+  constructor(props: Props & RouteComponentProps) {
+    super(props);
+
+    let startingStreamIndex = data.streams.findIndex(
+      ({ title }) =>
+        streamTitleToHashLocation(title) === this.props.location.hash
+    );
+    if (startingStreamIndex === -1) {
+      startingStreamIndex = 0;
+      const defaultHash = streamTitleToHashLocation(data.streams[0].title);
+      this.props.history.push(`#${defaultHash}`);
+    }
+
+    this.state = {
+      volume: 1,
+      currentStreamIndex: startingStreamIndex,
+    };
+  }
+
+  render() {
+    return (
+      <Page
+        volume={this.state.volume}
+        stream={data.streams[this.state.currentStreamIndex]}
+        onClickNext={() => {
+          const nextStreamIndex = mod(
+            this.state.currentStreamIndex + 1,
+            data.streams.length
+          );
+          const nextStream = data.streams[nextStreamIndex];
+          this.props.history.push(
+            `#${streamTitleToHashLocation(nextStream.title)}`
+          );
+          this.setState({
+            currentStreamIndex: nextStreamIndex,
+          });
+        }}
+        onClickPrev={() => {
+          const prevStreamIndex = mod(
+            this.state.currentStreamIndex - 1,
+            data.streams.length
+          );
+          const prevStream = data.streams[prevStreamIndex];
+          this.props.history.push(
+            `#${streamTitleToHashLocation(prevStream.title)}`
+          );
+          this.setState({
+            currentStreamIndex: prevStreamIndex,
+          });
+        }}
+      ></Page>
+    );
+  }
+}
+
+export default withRouter(App);
