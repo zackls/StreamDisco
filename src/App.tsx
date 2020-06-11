@@ -3,24 +3,30 @@ import * as data from "./data.json";
 import Page from "./Page";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import { streamTitleToHashLocation, mod } from "./util";
+import { withCookies, Cookies } from "react-cookie";
 
-// maybe eventually store as a cookie, or in redux if i decide its worth it
+// maybe eventually store in redux if i decide its worth it
 interface State {
   volume: number;
   currentStreamIndex: number;
 }
+type PersistedState = Pick<State, "volume">;
 
-interface Props {}
+interface OwnProps {}
+
+type Props = OwnProps & RouteComponentProps & { cookies: Cookies };
 
 // since this app is so small+shallow, this component's state serves as the main
 // storage
-class App extends React.Component<Props & RouteComponentProps, State> {
-  constructor(props: Props & RouteComponentProps) {
+class App extends React.Component<Props, State> {
+  constructor(props: Props) {
     super(props);
+
+    const persistedState: PersistedState = props.cookies.getAll();
 
     let startingStreamIndex = data.streams.findIndex(
       ({ title }) =>
-        streamTitleToHashLocation(title) === this.props.location.hash
+        `#${streamTitleToHashLocation(title)}` === this.props.location.hash
     );
     if (startingStreamIndex === -1) {
       startingStreamIndex = 0;
@@ -29,7 +35,7 @@ class App extends React.Component<Props & RouteComponentProps, State> {
     }
 
     this.state = {
-      volume: 1,
+      volume: Number(persistedState.volume) || 1,
       currentStreamIndex: startingStreamIndex,
     };
   }
@@ -65,9 +71,15 @@ class App extends React.Component<Props & RouteComponentProps, State> {
             currentStreamIndex: prevStreamIndex,
           });
         }}
+        onChangeVolume={(volume) => {
+          this.props.cookies.set("volume", volume);
+          this.setState({
+            volume,
+          });
+        }}
       ></Page>
     );
   }
 }
 
-export default withRouter(App);
+export default withRouter(withCookies(App));

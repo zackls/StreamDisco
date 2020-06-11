@@ -11,3 +11,22 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.page-slider {
+  height: 20px;
+}
+
+.page-slider-track {
+  background-color: white;
+  height: 2px;
+  width: 100%;
+}
+
+.page-slider-thumb {
+  left: -2.5px;
+  top: -2.5px;
+  background-color: black;
+  height: 5px;
+  width: 5px;
+  border-radius: 2.5px;
+}
