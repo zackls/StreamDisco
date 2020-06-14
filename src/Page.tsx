@@ -2,6 +2,7 @@ import React from "react";
 import Player from "./Player";
 import { Stream } from "./models";
 import Slider from "react-slider";
+import { nowMs } from "./now";
 
 interface Props {
   volume: number;
@@ -25,7 +26,14 @@ const Page: React.FC<Props> = ({
         backgroundColor: color,
       }}
     >
-      <Player url={url} volume={volume} />
+      <Player
+        url={url}
+        volume={volume}
+        startedAtMs={nowMs()}
+        // TODO show some indicator on buffering
+        onBuffering={() => console.log("buffering")}
+        onPlaying={() => console.log("playing")}
+      />
       <button onClick={onClickNext}>Next</button>
       <button onClick={onClickPrev}>Previous</button>
       <p>{title}</p>
