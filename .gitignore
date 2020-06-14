@@ -23,4 +23,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # streaming data isn't committed
-src/data.json
+src/data.ts

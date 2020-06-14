@@ -1,5 +1,5 @@
 import React from "react";
-import * as data from "./data.json";
+import data from "./data";
 import Page from "./Page";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import { streamTitleToHashLocation, mod } from "./util";
