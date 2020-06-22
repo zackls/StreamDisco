@@ -4,10 +4,10 @@ import { nowMs } from "./now";
 
 const DEBUG = true;
 
-const STREAM_OFFSET_TOLERANCE_MS = 100;
-const CATCHUP_WINDOW_INITIAL_MS = 1000;
-const CATCHUP_WINDOW_BACKOFF = 1.5;
-const CATCHUP_WINDOW_RECOVERY = 0.5;
+export const STREAM_OFFSET_TOLERANCE_MS = 100;
+export const CATCHUP_WINDOW_INITIAL_MS = 1000;
+export const CATCHUP_WINDOW_BACKOFF = 1.5;
+export const CATCHUP_WINDOW_RECOVERY = 0.5;
 
 interface SyncValue {
   firedAtMs: number;
@@ -20,6 +20,7 @@ interface Props {
   startedAtMs: number;
   onPlaying: () => void;
   onBuffering: () => void;
+  playerRef?: React.RefObject<ReactPlayer>;
 }
 
 interface State {
@@ -34,14 +35,13 @@ interface State {
 const getSeekMs = ({ firedAtMs, seekS }: SyncValue) =>
   nowMs() - firedAtMs + seekS * 1000;
 
-// todo this should be unit tested
 class Player extends React.Component<Props, State> {
-  private playerRef: React.RefObject<ReactPlayer>;
+  public playerRef: React.RefObject<ReactPlayer>;
 
   constructor(props: Props) {
     super(props);
 
-    this.playerRef = React.createRef<ReactPlayer>();
+    this.playerRef = props.playerRef || React.createRef<ReactPlayer>();
 
     this.state = {
       playing: false,
