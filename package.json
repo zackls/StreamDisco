@@ -27,8 +27,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "yarn jest",
+    "eject": "react-scripts eject",
+    "serve-prod": "sudo PORT=443 $(which serve) build"
   },
   "eslintConfig": {
     "extends": "react-app"
