@@ -40,6 +40,8 @@ const setupTest = (
   const { url = "test", volume = 1, startedAtMs = nowMs() } = testProps;
   const onBufferingMock = jest.fn();
   const onPlayingMock = jest.fn();
+  const onWaitingMock = jest.fn();
+  const onFinishedMock = jest.fn();
   const player = render(
     <Player
       url={url}
@@ -47,6 +49,8 @@ const setupTest = (
       startedAtMs={startedAtMs}
       onBuffering={onBufferingMock}
       onPlaying={onPlayingMock}
+      onWaiting={onWaitingMock}
+      onFinished={onFinishedMock}
       playerRef={{
         current: {
           seekTo: seekToMock as (
@@ -65,6 +69,8 @@ const setupTest = (
     player: player,
     onBufferingMock,
     onPlayingMock,
+    onWaitingMock,
+    onFinishedMock,
   };
 };
 
@@ -72,11 +78,12 @@ describe("startup", () => {
   test("handles load before start", () => {
     // if we started in the past, we should immediately begin playing at the
     // correct time in the future
-    setupTest({
+    const { onWaitingMock } = setupTest({
       startedAtMs: nowMs() - 1000,
     });
     expect(seekToMock).toBeCalledTimes(1);
     expect(seekToMock).toBeCalledWith(1, "seconds");
+    expect(onWaitingMock).toBeCalledTimes(1);
   });
   test("handles load after start", () => {
     // if we will start in the future, we should simply wait

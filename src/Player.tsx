@@ -20,6 +20,8 @@ interface Props {
   startedAtMs: number;
   onPlaying: () => void;
   onBuffering: () => void;
+  onWaiting: () => void;
+  onFinished: () => void;
   playerRef?: React.RefObject<ReactPlayer>;
 }
 
@@ -66,6 +68,7 @@ class Player extends React.Component<Props, State> {
         console.warn(
           "componentDidMount - starting in the future, waiting til then"
         );
+      this.props.onWaiting();
       setTimeout(() => {
         this.setState({ playing: true });
       }, -this.state.currentSeek.seekS * 1000);
@@ -77,6 +80,7 @@ class Player extends React.Component<Props, State> {
     const { playing, currentSeek, catchupWindowMs } = this.state;
     return (
       <ReactPlayer
+        onEnded={this.props.onFinished}
         ref={this.playerRef}
         onError={console.error}
         url={url}

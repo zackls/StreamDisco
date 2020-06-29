@@ -32,9 +32,10 @@ const Page: React.FC<Props> = ({
         url={url}
         volume={volume}
         startedAtMs={nowMs()}
-        // TODO show some indicator on buffering
         onBuffering={() => console.log("buffering")}
         onPlaying={() => console.log("playing")}
+        onWaiting={() => console.log("waiting")}
+        onFinished={() => console.log("finished")}
       />
       {/* prev button */}
       <Button onClick={onClickPrev}>
