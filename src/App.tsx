@@ -71,12 +71,6 @@ class App extends React.Component<Props, State> {
             currentStreamIndex: prevStreamIndex,
           });
         }}
-        onChangeVolume={(volume) => {
-          this.props.cookies.set("volume", volume);
-          this.setState({
-            volume,
-          });
-        }}
       ></Page>
     );
   }

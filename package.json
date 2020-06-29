@@ -20,7 +20,6 @@
     "react-player": "^2.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
-    "react-slider": "^1.0.7",
     "ts-jest": "24.3.0",
     "typescript": "~3.7.2"
   },

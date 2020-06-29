@@ -9009,11 +9009,6 @@ react-scripts@3.4.1:
   optionalDependencies:
     fsevents "2.1.2"
 
-react-slider@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/react-slider/-/react-slider-1.0.7.tgz#3e1a49cef0b96ce9596af0ee3494cce1384105c5"
-  integrity sha512-4n0hUtUYB7fLB8xENS28tu9T+H2QyJcXc1wYDBIdsxx5TVIxk8ngahxKzHKcE9Y509z4ppXH2JI1ok4cHrvg6w==
-
 react-test-renderer@^16.0.0-0:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-16.13.1.tgz#de25ea358d9012606de51e012d9742e7f0deabc1"
