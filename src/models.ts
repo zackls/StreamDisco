@@ -1,6 +1,7 @@
 export interface Stream {
   url: string;
   title: string;
+  subtitle: string;
   color: string;
 }
 
