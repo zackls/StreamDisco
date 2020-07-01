@@ -19,48 +19,50 @@ const Page: React.FC<Props> = ({
   onClickPrev,
 }) => {
   return (
-    <div
-      className="page"
-      style={{
-        backgroundColor: color,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Player
-        url={url}
-        volume={volume}
-        startedAtMs={nowMs()}
-        onBuffering={() => console.log("buffering")}
-        onPlaying={() => console.log("playing")}
-        onWaiting={() => console.log("waiting")}
-        onFinished={() => console.log("finished")}
-      />
-      {/* prev button */}
-      <Button onClick={onClickPrev}>
-        <MaterialIcon icon="arrow_back" />
-      </Button>
+    <>
+      <div id="canvasContainer" style={{ backgroundColor: color }}></div>
       <div
+        className="page"
         style={{
-          margin: 20,
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <div>
-          <h2>{title}</h2>
+        <Player
+          url={url}
+          volume={volume}
+          startedAtMs={nowMs()}
+          onBuffering={() => console.log("buffering")}
+          onPlaying={() => console.log("playing")}
+          onWaiting={() => console.log("waiting")}
+          onFinished={() => console.log("finished")}
+        />
+        {/* prev button */}
+        <Button onClick={onClickPrev}>
+          <MaterialIcon icon="arrow_back" />
+        </Button>
+        <div
+          style={{
+            margin: 20,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <h2>{title}</h2>
+          </div>
+          <div>
+            <h4>{subtitle}</h4>
+          </div>
         </div>
-        <div>
-          <h4>{subtitle}</h4>
-        </div>
+        {/* next button */}
+        <Button onClick={onClickNext}>
+          <MaterialIcon icon="arrow_forward" />
+        </Button>
       </div>
-      {/* next button */}
-      <Button onClick={onClickNext}>
-        <MaterialIcon icon="arrow_forward" />
-      </Button>
-    </div>
+    </>
   );
 };
 

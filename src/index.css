@@ -1,4 +1,8 @@
-html {
+html,
+body,
+canvas,
+.page,
+#root {
   height: 100%;
   width: 100%;
 }
@@ -28,16 +32,6 @@ div {
   text-align: center;
 }
 
-#root {
-  height: 100%;
-  width: 100%;
-}
-
-.page {
-  height: 100%;
-  width: 100%;
-}
-
 .btn {
   background: transparent;
   padding: 15px;
@@ -51,4 +45,10 @@ div {
 
 .touched {
   opacity: 0.5;
+}
+
+#canvasContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
