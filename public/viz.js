@@ -82,10 +82,26 @@ const variations = [
     dx: (x, y) => Math.cos(x * x + y * y),
     dy: (x, y) => Math.sin(Math.sqrt(Math.abs(x * y))),
   },
+  {
+    dx: (x, y) => Math.sin(x - y),
+    dy: (x, y) => Math.cos((x * y) / Math.max(1, y)),
+  },
+  {
+    dx: (x, y) => x - y * y,
+    dy: (x, y) => Math.sqrt(Math.abs(x)),
+  },
+  {
+    dx: (x, y) => Math.sqrt(x * x + y * y),
+    dy: (x, y) => 1,
+  },
+  {
+    dx: (x, y) => Math.cos(x + y),
+    dy: (x, y) => Math.sqrt(Math.abs(y / x)),
+  },
 ];
 
 function setup() {
-  const canvas = createCanvas(window.innerWidth - 5, window.innerHeight - 5);
+  const canvas = createCanvas(window.innerWidth, window.innerHeight);
   canvas.parent("canvasContainer");
   textAlign(CENTER, CENTER);
 

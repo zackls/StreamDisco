@@ -4,6 +4,7 @@ import { Stream } from "./models";
 import { nowMs } from "./now";
 import MaterialIcon from "@material/react-material-icon";
 import { Button } from "./Button";
+import Visualization from "./Visualization";
 
 interface Props {
   volume: number;
@@ -19,16 +20,8 @@ const Page: React.FC<Props> = ({
   onClickPrev,
 }) => {
   return (
-    <>
-      <div id="canvasContainer" style={{ backgroundColor: color }}></div>
-      <div
-        className="page"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+    <div id="pageContainer">
+      <div id="page">
         <Player
           url={url}
           volume={volume}
@@ -62,7 +55,8 @@ const Page: React.FC<Props> = ({
           <MaterialIcon icon="arrow_forward" />
         </Button>
       </div>
-    </>
+      <Visualization color={color} />
+    </div>
   );
 };
 
