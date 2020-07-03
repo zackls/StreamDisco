@@ -47,11 +47,11 @@ function sketch(p: p5) {
   const blobsPerRender = 3;
   const speed = 0.001;
   const blobLifetime = 3000;
-  const fadeSpeed = 5;
+  const fadeSpeed = 4;
 
-  const hueChange = 5;
+  const hueChange = 15;
   const saturationChange = 10;
-  const brightnessChange = 20;
+  const brightnessChange = 10;
 
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -60,81 +60,90 @@ function sketch(p: p5) {
     dx: TwoVariableFunction;
     dy: TwoVariableFunction;
   }> = [
-    { dx: (x, y) => Math.cos(y), dy: (x, y) => Math.sin(x) },
+    { dx: (x, y) => 1.5 * Math.cos(y), dy: (x, y) => 1.5 * Math.sin(x) },
     {
       dx: (x, y) => Math.cos(y * 5) * x * 0.3,
       dy: (x, y) => Math.sin(x * 5) * y * 0.3,
     },
+    {
+      dx: (x, y) => 0.5 * x * Math.cos(y * x),
+      dy: (x, y) => 0.5 * y * Math.sin(x * x),
+    },
     { dx: (x, y) => 1, dy: (x, y) => Math.cos(x * y) },
-    { dx: (x, y) => 1, dy: (x, y) => Math.sin(x) * Math.cos(y) },
-    { dx: (x, y) => 1, dy: (x, y) => Math.cos(x) * y * y },
+    { dx: (x, y) => Math.sin(x) * Math.cos(y), dy: (x, y) => 1 },
     {
       dx: (x, y) => 1,
       dy: (x, y) => Math.log(Math.abs(x)) * Math.log(Math.abs(y)),
     },
     {
-      dx: (x, y) => Math.sin(y * 0.1) * 3,
-      dy: (x, y) => -Math.sin(x * 0.1) * 3,
+      dx: (x, y) => 3 * Math.sin(y * 0.1),
+      dy: (x, y) => -3 * Math.sin(x * 0.1),
     },
-    { dx: (x, y) => y / 3, dy: (x, y) => (x - x * x * x) * 0.01 },
     { dx: (x, y) => -y, dy: (x, y) => -Math.sin(x) },
     { dx: (x, y) => -1.5 * y, dy: (x, y) => -y - Math.sin(1.5 * x) + 0.7 },
     {
-      dx: (x, y) => Math.sin(y) * Math.cos(x),
-      dy: (x, y) => Math.sin(x) * Math.cos(y),
-    },
-    {
-      dx: (x, y) => y * x * Math.sin(y),
+      dx: (x, y) => 0.5 * y * x * Math.sin(y),
       dy: (x, y) => Math.cos(x * y),
     },
     {
-      dx: (x, y) => -x * Math.sin(x),
-      dy: (x, y) => y * Math.sin(y),
+      dx: (x, y) => 0.5 * y * Math.sin(x),
+      dy: (x, y) => y * Math.cos(x * x),
     },
     {
-      dx: (x, y) => x / Math.max(0.2, Math.cos(x - (2 * y) / Math.max(1, x))),
-      dy: (x, y) =>
-        y / Math.max(0.2, Math.sin(2 * x + (y * y) / Math.max(1, x))),
+      dx: (x, y) => 0.5 * y * Math.sin(y) - x,
+      dy: (x, y) => y * Math.cos(x * y),
     },
     {
-      dx: (x, y) => Math.cos(x - y + y / Math.max(1, x)),
-      dy: (x, y) => Math.sin(x + y - y / Math.max(1, x)),
+      dx: (x, y) => 0.5 * x * Math.sin(x) - y,
+      dy: (x, y) => x * Math.cos(x * y),
     },
     {
-      dx: (x, y) => Math.cos(x - y + x / Math.max(1, y)),
-      dy: (x, y) => Math.sin(x + y - x / Math.max(1, y)),
+      dx: (x, y) => 2 * Math.cos(x - y + y / Math.max(1, x)),
+      dy: (x, y) => 2 * Math.sin(x + y - y / Math.max(1, x)),
     },
     {
-      dx: (x, y) => Math.cos(x / Math.max(1, y)) * Math.sin(x - y),
-      dy: (x, y) => Math.sin(x / Math.max(1, y)),
+      dx: (x, y) => 2 * Math.cos(x / Math.max(1, y)) * Math.sin(x - y),
+      dy: (x, y) => 2 * Math.sin(x / Math.max(1, y)),
     },
     {
-      dx: (x, y) => Math.sin(x * y),
-      dy: (x, y) => Math.cos((x * x) / Math.max(1, y)),
+      dx: (x, y) => 2 * Math.sin(x * y),
+      dy: (x, y) => 2 * Math.cos((x * x) / Math.max(1, y)),
     },
     {
-      dx: (x, y) => Math.sin(x + y),
-      dy: (x, y) => Math.cos((x * x) / Math.max(1, y)),
+      dx: (x, y) => 2 * Math.sin(y * y),
+      dy: (x, y) => 2 * Math.cos((y * x) / Math.max(1, Math.sin(x))),
     },
     {
-      dx: (x, y) => Math.cos(x * x + y * y),
-      dy: (x, y) => Math.sin(Math.sqrt(Math.abs(x * y))),
+      dx: (x, y) => 2 * Math.sin(x * y),
+      dy: (x, y) => 2 * Math.cos((y * y) / Math.max(1, x * x)),
     },
     {
-      dx: (x, y) => Math.sin(x - y),
-      dy: (x, y) => Math.cos((x * y) / Math.max(1, y)),
+      dx: (x, y) => 2 * Math.sin(x * y - x * x),
+      dy: (x, y) => 2 * Math.cos((x * x) / Math.max(1, y * y)),
     },
     {
-      dx: (x, y) => x - y * y,
+      dx: (x, y) => 2 * Math.sin(x + y),
+      dy: (x, y) => 2 * Math.cos((x * x) / Math.max(1, y)),
+    },
+    {
+      dx: (x, y) => 2 * Math.cos(x * x + y * y),
+      dy: (x, y) => 2 * Math.sin(Math.sqrt(Math.abs(x * y))),
+    },
+    {
+      dx: (x, y) => 3 * Math.sin(x - y),
+      dy: (x, y) => 3 * Math.cos((x * y) / Math.max(1, y)),
+    },
+    {
+      dx: (x, y) => 0.25 * x - y * y,
       dy: (x, y) => Math.sqrt(Math.abs(x)),
     },
     {
-      dx: (x, y) => Math.sqrt(x * x + y * y),
+      dx: (x, y) => 0.5 * Math.sqrt(x * x + y * y),
       dy: (x, y) => 1,
     },
     {
-      dx: (x, y) => Math.cos(x + y),
-      dy: (x, y) => Math.sqrt(Math.abs(y / x)),
+      dx: (x, y) => 2 * Math.cos(x + y),
+      dy: (x, y) => 2 * Math.sqrt(Math.abs(y / x)),
     },
   ];
 
@@ -147,15 +156,15 @@ function sketch(p: p5) {
           correctHSB([
             baseColor[0],
             baseColor[1] + saturationChange,
-            baseColor[2] - brightnessChange,
+            baseColor[2] - 2 * brightnessChange,
           ])
         ),
         p.color(
-          correctHSB([baseColor[0] - 3 * hueChange, baseColor[1], baseColor[2]])
+          correctHSB([baseColor[0] + 4 * hueChange, baseColor[1], baseColor[2]])
         ),
         p.color(
           correctHSB([
-            baseColor[0] + 2 * hueChange,
+            baseColor[0] + 5 * hueChange,
             baseColor[1] - saturationChange,
             baseColor[2],
           ])
@@ -203,7 +212,7 @@ function sketch(p: p5) {
         lastX: x,
         lastY: y,
         color: colors[p.floor(p.random(colors.length))],
-        direction: p.random(0.1, 1) * (p.random() > 0.5 ? 1 : -1),
+        direction: p.random(0.1, 1),
         born: time,
       });
     }
