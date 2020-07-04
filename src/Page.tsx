@@ -5,59 +5,122 @@ import { nowMs } from "./now";
 import MaterialIcon from "@material/react-material-icon";
 import { Button } from "./Button";
 import Visualization from "./Visualization";
+import moment from "moment";
 
 interface Props {
   volume: number;
   stream: Stream;
   onClickNext: () => void;
   onClickPrev: () => void;
+  startsAtMs: number;
 }
 
-const Page: React.FC<Props> = ({
-  volume,
-  stream: { url, color, title, subtitle },
-  onClickNext,
-  onClickPrev,
-}) => {
-  return (
-    <div id="pageContainer">
-      <div id="page">
-        <Player
-          url={url}
-          volume={volume}
-          startedAtMs={nowMs()}
-          onBuffering={() => console.log("buffering")}
-          onPlaying={() => console.log("playing")}
-          onWaiting={() => console.log("waiting")}
-          onFinished={() => console.log("finished")}
-        />
-        {/* prev button */}
-        <Button onClick={onClickPrev}>
-          <MaterialIcon icon="arrow_back" />
-        </Button>
-        <div
-          style={{
-            margin: 20,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
+interface State {
+  playing: boolean;
+  finished: boolean;
+}
+
+class Page extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      playing: false,
+      finished: false,
+    };
+  }
+
+  render() {
+    const {
+      volume,
+      stream: { url, color, title, subtitle },
+      onClickNext,
+      onClickPrev,
+      startsAtMs,
+    } = this.props;
+
+    let centerComponent = null;
+    const now = nowMs();
+    if (now < startsAtMs) {
+      // rerender in a second to refresh the time
+      setTimeout(() => {
+        this.forceUpdate();
+      }, 1000);
+      centerComponent = (
+        <div>
+          <h4>Starting {moment(startsAtMs).fromNow()}</h4>
+        </div>
+      );
+    } else if (this.state.finished) {
+      centerComponent = (
+        <div>
+          <h4>Thanks for listening :)</h4>
+        </div>
+      );
+    } else {
+      centerComponent = (
+        <>
           <div>
             <h2>{title}</h2>
           </div>
           <div>
             <h4>{subtitle}</h4>
           </div>
+        </>
+      );
+    }
+
+    return (
+      <div id="pageContainer">
+        <div id="page">
+          <Player
+            url={url}
+            volume={volume}
+            startsAtMs={startsAtMs}
+            onBuffering={() => {
+              this.setState({
+                playing: false,
+              });
+            }}
+            onPlaying={() => {
+              this.setState({
+                playing: true,
+              });
+            }}
+            onWaiting={() => {
+              this.setState({
+                playing: false,
+              });
+            }}
+            onFinished={() => {
+              this.setState({
+                playing: false,
+                finished: true,
+              });
+            }}
+          />
+          {/* prev button */}
+          <Button onClick={onClickPrev}>
+            <MaterialIcon icon="arrow_back" />
+          </Button>
+          <div
+            style={{
+              margin: 20,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {centerComponent}
+          </div>
+          {/* next button */}
+          <Button onClick={onClickNext}>
+            <MaterialIcon icon="arrow_forward" />
+          </Button>
         </div>
-        {/* next button */}
-        <Button onClick={onClickNext}>
-          <MaterialIcon icon="arrow_forward" />
-        </Button>
+        <Visualization color={color} paused={!this.state.playing} />
       </div>
-      <Visualization color={color} />
-    </div>
-  );
-};
+    );
+  }
+}
 
 export default Page;

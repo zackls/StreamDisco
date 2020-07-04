@@ -34,10 +34,10 @@ const seekToMock = jest.fn<
 
 const setupTest = (
   testProps: Partial<
-    Pick<Player["props"], "url" | "volume" | "startedAtMs">
+    Pick<Player["props"], "url" | "volume" | "startsAtMs">
   > = {}
 ) => {
-  const { url = "test", volume = 1, startedAtMs = nowMs() } = testProps;
+  const { url = "test", volume = 1, startsAtMs = nowMs() } = testProps;
   const onBufferingMock = jest.fn();
   const onPlayingMock = jest.fn();
   const onWaitingMock = jest.fn();
@@ -46,7 +46,7 @@ const setupTest = (
     <Player
       url={url}
       volume={volume}
-      startedAtMs={startedAtMs}
+      startsAtMs={startsAtMs}
       onBuffering={onBufferingMock}
       onPlaying={onPlayingMock}
       onWaiting={onWaitingMock}
@@ -79,7 +79,7 @@ describe("startup", () => {
     // if we started in the past, we should immediately begin playing at the
     // correct time in the future
     const { onWaitingMock } = setupTest({
-      startedAtMs: nowMs() - 1000,
+      startsAtMs: nowMs() - 1000,
     });
     expect(seekToMock).toBeCalledTimes(1);
     expect(seekToMock).toBeCalledWith(1, "seconds");
@@ -88,7 +88,7 @@ describe("startup", () => {
   test("handles load after start", () => {
     // if we will start in the future, we should simply wait
     setupTest({
-      startedAtMs: nowMs() + 1000,
+      startsAtMs: nowMs() + 1000,
     });
     expect(setTimeout).toBeCalledTimes(1);
     expect(setTimeout).toBeCalledWith(expect.any(Function), 1000);

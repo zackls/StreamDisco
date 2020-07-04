@@ -7,6 +7,7 @@ import { mod } from "./util";
 
 interface Props {
   color: string;
+  paused: boolean;
 }
 
 type HSB = number[];
@@ -42,6 +43,7 @@ function sketch(p: p5) {
 
   let lastChange = 0;
   let baseColor: HSB;
+  let paused = true;
 
   const changeDuration = 10000;
   const blobsPerRender = 3;
@@ -185,6 +187,7 @@ function sketch(p: p5) {
         ),
       ];
     }
+    paused = props.paused;
   };
 
   p.setup = () => {
@@ -202,19 +205,21 @@ function sketch(p: p5) {
 
   p.draw = () => {
     let time = p.millis();
-    for (let i = 0; i < blobsPerRender; i++) {
-      let x = p.random(0, width);
-      let y = p.random(0, height);
-      blobs.push({
-        x: getXPos(x),
-        y: getYPos(y),
-        size: p.random(1, 5),
-        lastX: x,
-        lastY: y,
-        color: colors[p.floor(p.random(colors.length))],
-        direction: p.random(0.1, 1),
-        born: time,
-      });
+    if (!paused) {
+      for (let i = 0; i < blobsPerRender; i++) {
+        let x = p.random(0, width);
+        let y = p.random(0, height);
+        blobs.push({
+          x: getXPos(x),
+          y: getYPos(y),
+          size: p.random(1, 5),
+          lastX: x,
+          lastY: y,
+          color: colors[p.floor(p.random(colors.length))],
+          direction: p.random(0.1, 1),
+          born: time,
+        });
+      }
     }
 
     p.noStroke();
@@ -317,10 +322,9 @@ function sketch(p: p5) {
   ];
 }
 
-// TODO use a react p5 tool to trigger updates to the visualization properly
-const Visualization: React.FC<Props> = ({ color }) => (
+const Visualization: React.FC<Props> = ({ color, paused }) => (
   <div id="canvasContainer" style={{ backgroundColor: color }}>
-    <P5Wrapper sketch={sketch} color={color} />
+    <P5Wrapper sketch={sketch} color={color} paused={paused} />
   </div>
 );
 

@@ -17,7 +17,7 @@ interface SyncValue {
 interface Props {
   url: string;
   volume: number;
-  startedAtMs: number;
+  startsAtMs: number;
   onPlaying: () => void;
   onBuffering: () => void;
   onWaiting: () => void;
@@ -29,6 +29,7 @@ interface State {
   playing: boolean;
   currentSeek: SyncValue;
   catchupWindowMs: number;
+  durationS?: number;
 }
 
 // this is necessary since we only get progress events every second, but need
@@ -50,7 +51,7 @@ class Player extends React.Component<Props, State> {
       // i wonder if this even needs to live on state? it's only read in callbacks
       currentSeek: {
         firedAtMs: nowMs(),
-        seekS: (nowMs() - props.startedAtMs) / 1000,
+        seekS: (nowMs() - props.startsAtMs) / 1000,
       },
       catchupWindowMs: CATCHUP_WINDOW_INITIAL_MS,
     };
@@ -76,11 +77,35 @@ class Player extends React.Component<Props, State> {
   }
 
   render() {
-    const { url, volume, startedAtMs, onPlaying, onBuffering } = this.props;
+    const {
+      url,
+      volume,
+      startsAtMs,
+      onPlaying,
+      onBuffering,
+      onFinished,
+    } = this.props;
     const { playing, currentSeek, catchupWindowMs } = this.state;
+    if (
+      this.state.durationS &&
+      this.state.durationS < (nowMs() - startsAtMs) / 1000
+    ) {
+      if (playing) {
+        if (DEBUG) console.warn("render - ending the stream unconventionally");
+        onFinished();
+        // generally setting state within render is a big bad idea, but im making
+        // an exception here since the player itself doesnt seem to know to stop
+        // if weve seeked past the song duration
+        this.setState({
+          playing: false,
+        });
+      }
+      return null;
+    }
     return (
       <ReactPlayer
-        onEnded={this.props.onFinished}
+        onDuration={(durationS) => this.setState({ durationS })}
+        onEnded={onFinished}
         ref={this.playerRef}
         onError={console.error}
         url={url}
@@ -104,7 +129,7 @@ class Player extends React.Component<Props, State> {
           onBuffering();
         }}
         onReady={() => {
-          const expectedSeekMs = nowMs() - startedAtMs;
+          const expectedSeekMs = nowMs() - startsAtMs;
           const currentSeekMs = getSeekMs(currentSeek);
           if (currentSeekMs - expectedSeekMs > STREAM_OFFSET_TOLERANCE_MS) {
             if (DEBUG)
@@ -148,7 +173,7 @@ class Player extends React.Component<Props, State> {
             this.setState({
               catchupWindowMs: catchupWindowMs * CATCHUP_WINDOW_BACKOFF,
             });
-          } else {
+          } else if (this.state.currentSeek.seekS >= 0) {
             if (DEBUG) console.warn("onReady - good to go!");
             // if we're within tolerance, start playing!
             this.setState({

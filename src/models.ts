@@ -6,7 +6,7 @@ export interface Stream {
 }
 
 export interface Session {
-  startMs: number;
+  startsAt: string;
   durationMs: number;
   streams: Stream[];
 }

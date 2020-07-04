@@ -4,6 +4,7 @@ import Page from "./Page";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import { streamTitleToHashLocation, mod } from "./util";
 import { withCookies, Cookies } from "react-cookie";
+import moment from "moment";
 
 // maybe eventually store in redux if i decide its worth it
 interface State {
@@ -71,6 +72,7 @@ class App extends React.Component<Props, State> {
             currentStreamIndex: prevStreamIndex,
           });
         }}
+        startsAtMs={moment(data.startsAt).valueOf()}
       ></Page>
     );
   }
