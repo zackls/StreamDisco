@@ -6,6 +6,7 @@ import MaterialIcon from "@material/react-material-icon";
 import { Button } from "./Button";
 import Visualization from "./Visualization";
 import moment from "moment";
+import { DEBUG_STARTS_ON_REFRESH } from "./debug";
 
 interface Props {
   volume: number;
@@ -35,8 +36,9 @@ class Page extends React.Component<Props, State> {
       stream: { url, color, title, subtitle },
       onClickNext,
       onClickPrev,
-      startsAtMs,
     } = this.props;
+
+    let startsAtMs = DEBUG_STARTS_ON_REFRESH ? nowMs() : this.props.startsAtMs;
 
     let centerComponent = null;
     const now = nowMs();

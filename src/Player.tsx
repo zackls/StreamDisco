@@ -1,8 +1,7 @@
 import * as React from "react";
 import ReactPlayer from "react-player";
 import { nowMs } from "./now";
-
-const DEBUG = true;
+import { DEBUG_PLAYER_LOGGING } from "./debug";
 
 export const STREAM_OFFSET_TOLERANCE_MS = 100;
 export const CATCHUP_WINDOW_INITIAL_MS = 1000;
@@ -59,13 +58,13 @@ class Player extends React.Component<Props, State> {
 
   componentDidMount() {
     if (this.state.currentSeek.seekS >= 0) {
-      if (DEBUG)
+      if (DEBUG_PLAYER_LOGGING)
         console.warn(
           "componentDidMount - we should have already started, starting now!"
         );
       this.playerRef.current?.seekTo(this.state.currentSeek.seekS, "seconds");
     } else {
-      if (DEBUG)
+      if (DEBUG_PLAYER_LOGGING)
         console.warn(
           "componentDidMount - starting in the future, waiting til then"
         );
@@ -91,7 +90,8 @@ class Player extends React.Component<Props, State> {
       this.state.durationS < (nowMs() - startsAtMs) / 1000
     ) {
       if (playing) {
-        if (DEBUG) console.warn("render - ending the stream unconventionally");
+        if (DEBUG_PLAYER_LOGGING)
+          console.warn("render - ending the stream unconventionally");
         onFinished();
         // generally setting state within render is a big bad idea, but im making
         // an exception here since the player itself doesnt seem to know to stop
@@ -122,7 +122,7 @@ class Player extends React.Component<Props, State> {
           });
         }}
         onBuffer={() => {
-          if (DEBUG) console.warn("onBuffer");
+          if (DEBUG_PLAYER_LOGGING) console.warn("onBuffer");
           this.setState({
             playing: false,
           });
@@ -132,7 +132,7 @@ class Player extends React.Component<Props, State> {
           const expectedSeekMs = nowMs() - startsAtMs;
           const currentSeekMs = getSeekMs(currentSeek);
           if (currentSeekMs - expectedSeekMs > STREAM_OFFSET_TOLERANCE_MS) {
-            if (DEBUG)
+            if (DEBUG_PLAYER_LOGGING)
               console.warn(
                 "onReady - ready to play, waiting til the correct time"
               );
@@ -156,7 +156,8 @@ class Player extends React.Component<Props, State> {
             currentSeekMs - expectedSeekMs <
             -STREAM_OFFSET_TOLERANCE_MS
           ) {
-            if (DEBUG) console.warn("onReady - we've lagged behind, seeking");
+            if (DEBUG_PLAYER_LOGGING)
+              console.warn("onReady - we've lagged behind, seeking");
             // if we're outside our tolerance in the negative direction (we
             // haven't loaded enough), we need to seek into the future to try to
             // catch up to the current time
@@ -166,7 +167,7 @@ class Player extends React.Component<Props, State> {
             );
             // increase the catchup window in hopes that seeking further into
             // the future will help
-            if (DEBUG)
+            if (DEBUG_PLAYER_LOGGING)
               console.warn(
                 `onReady - upping catchup window to ${catchupWindowMs}`
               );
@@ -174,7 +175,7 @@ class Player extends React.Component<Props, State> {
               catchupWindowMs: catchupWindowMs * CATCHUP_WINDOW_BACKOFF,
             });
           } else if (this.state.currentSeek.seekS >= 0) {
-            if (DEBUG) console.warn("onReady - good to go!");
+            if (DEBUG_PLAYER_LOGGING) console.warn("onReady - good to go!");
             // if we're within tolerance, start playing!
             this.setState({
               playing: true,
@@ -187,7 +188,7 @@ class Player extends React.Component<Props, State> {
           }
         }}
         onStart={() => {
-          if (DEBUG) console.warn("onPlaying");
+          if (DEBUG_PLAYER_LOGGING) console.warn("onPlaying");
           onPlaying();
         }}
       />
