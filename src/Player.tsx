@@ -131,6 +131,9 @@ class Player extends React.Component<Props, State> {
         onReady={() => {
           const expectedSeekMs = nowMs() - startsAtMs;
           const currentSeekMs = getSeekMs(currentSeek);
+          if (this.state.currentSeek.seekS < 0) {
+            return;
+          }
           if (currentSeekMs - expectedSeekMs > STREAM_OFFSET_TOLERANCE_MS) {
             if (DEBUG_PLAYER_LOGGING)
               console.warn(
@@ -174,7 +177,7 @@ class Player extends React.Component<Props, State> {
             this.setState({
               catchupWindowMs: catchupWindowMs * CATCHUP_WINDOW_BACKOFF,
             });
-          } else if (this.state.currentSeek.seekS >= 0) {
+          } else {
             if (DEBUG_PLAYER_LOGGING) console.warn("onReady - good to go!");
             // if we're within tolerance, start playing!
             this.setState({
