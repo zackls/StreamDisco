@@ -1,6 +1,6 @@
 import React from "react";
 import Player from "./Player";
-import { Stream } from "./models";
+import { Stream, PlayerStatus } from "./models";
 import { nowMs } from "./now";
 import MaterialIcon from "@material/react-material-icon";
 import { Button } from "./Button";
@@ -17,17 +17,13 @@ interface Props {
 }
 
 interface State {
-  playing: boolean;
-  finished: boolean;
+  status: PlayerStatus;
 }
 
 class Page extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {
-      playing: false,
-      finished: false,
-    };
+    this.state = { status: "waiting" };
   }
 
   render() {
@@ -52,7 +48,7 @@ class Page extends React.Component<Props, State> {
           <h4>Starting {moment(startsAtMs).fromNow()}</h4>
         </div>
       );
-    } else if (this.state.finished) {
+    } else if (this.state.status === "finished") {
       centerComponent = (
         <div>
           <h4>Thanks for listening :)</h4>
@@ -80,23 +76,22 @@ class Page extends React.Component<Props, State> {
             startsAtMs={startsAtMs}
             onBuffering={() => {
               this.setState({
-                playing: false,
+                status: "buffering",
               });
             }}
             onPlaying={() => {
               this.setState({
-                playing: true,
+                status: "playing",
               });
             }}
             onWaiting={() => {
               this.setState({
-                playing: false,
+                status: "waiting",
               });
             }}
             onFinished={() => {
               this.setState({
-                playing: false,
-                finished: true,
+                status: "finished",
               });
             }}
           />
@@ -119,7 +114,7 @@ class Page extends React.Component<Props, State> {
             <MaterialIcon icon="arrow_forward" />
           </Button>
         </div>
-        <Visualization color={color} paused={!this.state.playing} />
+        <Visualization color={color} status={this.state.status} />
       </div>
     );
   }

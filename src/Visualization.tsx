@@ -1,13 +1,14 @@
-import React from "react";
-import p5 from "p5";
-
 // @ts-ignore
 import P5Wrapper from "react-p5-wrapper";
+
+import React from "react";
+import p5 from "p5";
 import { mod } from "./util";
+import { PlayerStatus } from "./models";
 
 interface Props {
   color: string;
-  paused: boolean;
+  status: PlayerStatus;
 }
 
 type HSB = number[];
@@ -25,6 +26,10 @@ interface Blob {
 
 // helpful to define cause it comes up often
 type TwoVariableFunction = (x: number, y: number) => number;
+interface Variation {
+  dx: TwoVariableFunction;
+  dy: TwoVariableFunction;
+}
 
 function sketch(p: p5) {
   /******************
@@ -35,7 +40,8 @@ function sketch(p: p5) {
 
   const blobs: Blob[] = [];
   let colors: p5.Color[];
-  let variation: number;
+  let variation: Variation;
+  let variationOverride: Variation | undefined;
   let xScale: number;
   let yScale: number;
   let centerX: number;
@@ -43,7 +49,7 @@ function sketch(p: p5) {
 
   let lastChange = 0;
   let baseColor: HSB;
-  let paused = true;
+  let status: PlayerStatus = "finished";
 
   const changeDuration = 10000;
   const blobsPerRender = 3;
@@ -58,11 +64,7 @@ function sketch(p: p5) {
   const width = window.innerWidth;
   const height = window.innerHeight;
 
-  const variations: Array<{
-    dx: TwoVariableFunction;
-    dy: TwoVariableFunction;
-  }> = [
-    { dx: (x, y) => 1.5 * Math.cos(y), dy: (x, y) => 1.5 * Math.sin(x) },
+  const variations: Variation[] = [
     {
       dx: (x, y) => Math.cos(y * 5) * x * 0.3,
       dy: (x, y) => Math.sin(x * 5) * y * 0.3,
@@ -148,6 +150,14 @@ function sketch(p: p5) {
       dy: (x, y) => 2 * Math.sqrt(Math.abs(y / x)),
     },
   ];
+  const bufferingVariation: Variation = {
+    dx: (x, y) => 2.5 * Math.cos(y),
+    dy: (x, y) => 2.5 * Math.sin(x),
+  };
+  const waitingVariation: Variation = {
+    dx: (x, y) => p.random() * Math.cos(10 * y),
+    dy: (x, y) => p.random() * Math.sin(10 * x),
+  };
 
   (p as any).myCustomRedrawAccordingToNewPropsHandler = (props: Props) => {
     p.colorMode(p.HSB, 100);
@@ -187,7 +197,7 @@ function sketch(p: p5) {
         ),
       ];
     }
-    paused = props.paused;
+    status = props.status;
   };
 
   p.setup = () => {
@@ -200,12 +210,26 @@ function sketch(p: p5) {
     centerX = width / 2;
     centerY = height / 2;
 
-    variation = p.floor(p.random(0, variations.length));
+    variation = variations[p.floor(p.random(0, variations.length))];
   };
 
   p.draw = () => {
     let time = p.millis();
-    if (!paused) {
+    advanceVariation(time);
+    spawn(time);
+    drawBackground();
+    moveBlobs(time);
+  };
+
+  // helpers
+  const advanceVariation = (time: number) => {
+    if (time - lastChange > changeDuration) {
+      lastChange = time;
+      variation = variations[p.floor(p.random(0, variations.length))];
+    }
+  };
+  const spawn = (time: number) => {
+    if (status === "playing") {
       for (let i = 0; i < blobsPerRender; i++) {
         let x = p.random(0, width);
         let y = p.random(0, height);
@@ -220,18 +244,57 @@ function sketch(p: p5) {
           born: time,
         });
       }
+    } else if (status === "buffering") {
+      let x = width / 2;
+      let y = height / 2 + 100;
+      blobs.push({
+        x: getXPos(x),
+        y: getYPos(y),
+        size: p.random(1, 5),
+        lastX: x,
+        lastY: y,
+        color: colors[p.floor(p.random(colors.length))],
+        direction: p.random(0.1, 1),
+        born: time,
+      });
+    } else if (status === "waiting") {
+      let x = mod(p.floor(time / 1000), 3) * 100 - 100 + width / 2;
+      let y = height / 2 + 100;
+      if (p.random() < 0.05) {
+        x = p.random(0, width);
+        y = p.random(0, height);
+      }
+      blobs.push({
+        x: getXPos(x),
+        y: getYPos(y),
+        size: p.random(1, 5),
+        lastX: x,
+        lastY: y,
+        color: colors[p.floor(p.random(colors.length))],
+        direction: p.random(0.1, 1),
+        born: time,
+      });
+    } else if (status === "finished") {
+      // currently no animation on finished, maybe eventually a smiley face or
+      // something?
+      return;
     }
-
+  };
+  const drawBackground = () => {
     p.noStroke();
     p.fill(baseColor[0], baseColor[1], baseColor[2], fadeSpeed);
     p.rect(0, 0, width, height);
-
-    //auto change
-    if (time - lastChange > changeDuration) {
-      lastChange = time;
-      variation = p.floor(p.random(0, variations.length));
+  };
+  const moveBlobs = (time: number) => {
+    if (status === "buffering") {
+      variationOverride = bufferingVariation;
+    } else if (status === "waiting") {
+      variationOverride = waitingVariation;
+    } else if (status === "finished") {
+      return;
+    } else {
+      variationOverride = undefined;
     }
-
     const stepsize = p.deltaTime * speed;
     for (let i = blobs.length - 1; i >= 0; i--) {
       let blob = blobs[i];
@@ -249,24 +312,15 @@ function sketch(p: p5) {
       blob.lastX = x;
       blob.lastY = y;
 
-      const border = 1000;
-      if (
-        x < -border ||
-        y < -border ||
-        x > width + border ||
-        y > height + border ||
-        time - blob.born > blobLifetime
-      ) {
+      if (time - blob.born > blobLifetime) {
         blobs.splice(i, 1);
       }
     }
   };
-
-  // helpers
   const getSlopeX: TwoVariableFunction = (x, y) =>
-    variations[variation].dx(x, y);
+    (variationOverride || variation).dx(x, y);
   const getSlopeY: TwoVariableFunction = (x, y) =>
-    variations[variation].dy(x, y);
+    (variationOverride || variation).dy(x, y);
   const getXPos = (x: number) => (x - centerX) / xScale;
   const getYPos = (y: number) => (y - centerY) / yScale;
   const getXPrint = (x: number) => xScale * x + centerX;
@@ -322,9 +376,9 @@ function sketch(p: p5) {
   ];
 }
 
-const Visualization: React.FC<Props> = ({ color, paused }) => (
+const Visualization: React.FC<Props> = ({ color, status }) => (
   <div id="canvasContainer" style={{ backgroundColor: color }}>
-    <P5Wrapper sketch={sketch} color={color} paused={paused} />
+    <P5Wrapper sketch={sketch} color={color} status={status} />
   </div>
 );
 

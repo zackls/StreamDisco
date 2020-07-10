@@ -10,3 +10,5 @@ export interface Session {
   durationMs: number;
   streams: Stream[];
 }
+
+export type PlayerStatus = "buffering" | "waiting" | "finished" | "playing";
