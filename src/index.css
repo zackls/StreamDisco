@@ -59,9 +59,12 @@ div {
 #pageContainer {
   position: relative;
 }
-#canvasContainer,
 #page {
   position: absolute;
   top: 0;
   left: 0;
+}
+#canvasContainer {
+  position: relative;
+  overflow: hidden;
 }

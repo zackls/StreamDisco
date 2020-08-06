@@ -377,11 +377,17 @@ function sketch(p: p5) {
 }
 
 const Visualization: React.FC<Props> = ({ color, status }) => (
-  <div
-    id="canvasContainer"
-    style={{ backgroundColor: color, overflow: "hidden" }}
-  >
-    <P5Wrapper sketch={sketch} color={color} status={status} />
+  <div id="canvasContainer" style={{ backgroundColor: color }}>
+    <div
+      style={{
+        position: "absolute",
+        left: -9999,
+        right: -9999,
+        margin: "auto",
+      }}
+    >
+      <P5Wrapper sketch={sketch} color={color} status={status} />
+    </div>
   </div>
 );
 
