@@ -9,6 +9,7 @@ prefer to listen to. Instead, SteamDisco simply asks dancers to bring their own
 headphones, and makes streams available through an intuitive, simple, and
 colorful interface.
 
+![](images/examplegif1.gif)
 ![](images/example1.png)
 ![](images/example2.png)
 
