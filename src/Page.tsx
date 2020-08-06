@@ -23,7 +23,7 @@ interface State {
 class Page extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { status: "waiting" };
+    this.state = { status: "waiting for user input" };
   }
 
   render() {
@@ -38,7 +38,19 @@ class Page extends React.Component<Props, State> {
 
     let centerComponent = null;
     const now = nowMs();
-    if (now < startsAtMs) {
+    if (this.state.status === "finished") {
+      centerComponent = (
+        <div>
+          <h4>Thanks for listening :)</h4>
+        </div>
+      );
+    } else if (this.state.status === "waiting for user input") {
+      centerComponent = (
+        <Button onClick={() => this.setState({ status: "waiting to load" })}>
+          <h2>Start Listening</h2>
+        </Button>
+      );
+    } else if (now < startsAtMs) {
       // rerender in a second to refresh the time
       setTimeout(() => {
         this.forceUpdate();
@@ -46,12 +58,6 @@ class Page extends React.Component<Props, State> {
       centerComponent = (
         <div>
           <h4>Starting {moment(startsAtMs).fromNow()}</h4>
-        </div>
-      );
-    } else if (this.state.status === "finished") {
-      centerComponent = (
-        <div>
-          <h4>Thanks for listening :)</h4>
         </div>
       );
     } else {
@@ -70,31 +76,33 @@ class Page extends React.Component<Props, State> {
     return (
       <div id="pageContainer">
         <div id="page">
-          <Player
-            url={url}
-            volume={volume}
-            startsAtMs={startsAtMs}
-            onBuffering={() => {
-              this.setState({
-                status: "buffering",
-              });
-            }}
-            onPlaying={() => {
-              this.setState({
-                status: "playing",
-              });
-            }}
-            onWaiting={() => {
-              this.setState({
-                status: "waiting",
-              });
-            }}
-            onFinished={() => {
-              this.setState({
-                status: "finished",
-              });
-            }}
-          />
+          {this.state.status !== "waiting for user input" && (
+            <Player
+              url={url}
+              volume={volume}
+              startsAtMs={startsAtMs}
+              onBuffering={() => {
+                this.setState({
+                  status: "buffering",
+                });
+              }}
+              onPlaying={() => {
+                this.setState({
+                  status: "playing",
+                });
+              }}
+              onWaiting={() => {
+                this.setState({
+                  status: "waiting to load",
+                });
+              }}
+              onFinished={() => {
+                this.setState({
+                  status: "finished",
+                });
+              }}
+            />
+          )}
           {/* prev button */}
           <Button onClick={onClickPrev}>
             <MaterialIcon icon="arrow_back" />

@@ -257,7 +257,10 @@ function sketch(p: p5) {
         direction: p.random(0.1, 1),
         born: time,
       });
-    } else if (status === "waiting") {
+    } else if (
+      status === "waiting to load" ||
+      status === "waiting for user input"
+    ) {
       let x = mod(p.floor(time / 1000), 3) * 100 - 100 + width / 2;
       let y = height / 2 + 100;
       if (p.random() < 0.05) {
@@ -288,7 +291,10 @@ function sketch(p: p5) {
   const moveBlobs = (time: number) => {
     if (status === "buffering") {
       variationOverride = bufferingVariation;
-    } else if (status === "waiting") {
+    } else if (
+      status === "waiting to load" ||
+      status === "waiting for user input"
+    ) {
       variationOverride = waitingVariation;
     } else if (status === "finished") {
       return;

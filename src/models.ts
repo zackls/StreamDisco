@@ -11,4 +11,9 @@ export interface Session {
   streams: Stream[];
 }
 
-export type PlayerStatus = "buffering" | "waiting" | "finished" | "playing";
+export type PlayerStatus =
+  | "buffering"
+  | "waiting to load"
+  | "finished"
+  | "playing"
+  | "waiting for user input";
