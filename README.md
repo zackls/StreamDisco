@@ -27,7 +27,8 @@ export default {
       color: "#f6557e",
       title: "Stream 1",
       subtitle: "Stream 1",
-      url: "https://soundcloud.com/ntreboot/sets/showa-idols-groove",
+      url:
+        "https://soundcloud.com/littkemusic/funk-of-the-future-high-energy-future-funk-mix",
     },
   ],
 };
