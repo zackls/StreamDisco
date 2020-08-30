@@ -6,7 +6,7 @@ import MaterialIcon from "@material/react-material-icon";
 import { Button } from "./Button";
 import Visualization from "./Visualization";
 import moment from "moment";
-import { DEBUG_STARTS_ON_REFRESH } from "./debug";
+import { DEBUG_STARTS_ON_REFRESH, DEBUG_PLAYER_LOGGING } from "./debug";
 
 interface Props {
   volume: number;
@@ -18,12 +18,13 @@ interface Props {
 
 interface State {
   status: PlayerStatus;
+  playerLag: number;
 }
 
 class Page extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { status: "waiting for user input" };
+    this.state = { status: "waiting for user input", playerLag: 0 };
   }
 
   render() {
@@ -101,6 +102,11 @@ class Page extends React.Component<Props, State> {
                   status: "finished",
                 });
               }}
+              onRecordLag={(lag) => {
+                this.setState({
+                  playerLag: lag,
+                });
+              }}
             />
           )}
           {/* prev button */}
@@ -116,6 +122,7 @@ class Page extends React.Component<Props, State> {
             }}
           >
             {centerComponent}
+            {DEBUG_PLAYER_LOGGING && `Lag: ${this.state.playerLag}`}
           </div>
           {/* next button */}
           <Button onClick={onClickNext}>

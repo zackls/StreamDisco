@@ -4,7 +4,7 @@ import { nowMs } from "./now";
 import { DEBUG_PLAYER_LOGGING } from "./debug";
 
 export const STREAM_OFFSET_TOLERANCE_MS = 100;
-export const CATCHUP_WINDOW_INITIAL_MS = 1000;
+export const CATCHUP_WINDOW_INITIAL_MS = 1500;
 export const CATCHUP_WINDOW_BACKOFF = 1.5;
 export const CATCHUP_WINDOW_RECOVERY = 0.5;
 
@@ -21,6 +21,7 @@ interface Props {
   onBuffering: () => void;
   onWaiting: () => void;
   onFinished: () => void;
+  onRecordLag?: (lag: number) => void;
   playerRef?: React.RefObject<ReactPlayer>;
 }
 
@@ -75,6 +76,77 @@ class Player extends React.Component<Props, State> {
     }
   }
 
+  syncState(updatedCurrentSeek?: SyncValue) {
+    const { startsAtMs } = this.props;
+    const { catchupWindowMs } = this.state;
+    const expectedSeekMs = nowMs() - startsAtMs;
+    const currentSeekMs = getSeekMs(
+      updatedCurrentSeek || this.state.currentSeek
+    );
+    if (this.state.currentSeek.seekS < 0) {
+      return;
+    }
+    if (currentSeekMs - expectedSeekMs > STREAM_OFFSET_TOLERANCE_MS) {
+      if (DEBUG_PLAYER_LOGGING)
+        console.warn(
+          `onReady - ready to play, waiting til the correct time (${
+            currentSeekMs - expectedSeekMs
+          }ms)`
+        );
+      // if we're outside our tolerance in the positive direction (we've
+      // seeked into the future and are ready) simply wait
+      setTimeout(() => {
+        this.setState({
+          playing: true,
+          currentSeek: {
+            seekS: expectedSeekMs / 1000,
+            firedAtMs: expectedSeekMs,
+          },
+          // lower catchup window, if it was increased
+          catchupWindowMs: Math.max(
+            CATCHUP_WINDOW_INITIAL_MS,
+            catchupWindowMs * CATCHUP_WINDOW_RECOVERY
+          ),
+        });
+      }, currentSeekMs - expectedSeekMs);
+      this.setState({
+        playing: false,
+      });
+    } else if (currentSeekMs - expectedSeekMs < -STREAM_OFFSET_TOLERANCE_MS) {
+      if (DEBUG_PLAYER_LOGGING)
+        console.warn("onReady - we've lagged behind, seeking");
+      // if we're outside our tolerance in the negative direction (we
+      // haven't loaded enough), we need to seek into the future to try to
+      // catch up to the current time
+      this.playerRef.current?.seekTo(
+        (expectedSeekMs + catchupWindowMs) / 1000,
+        "seconds"
+      );
+      // increase the catchup window in hopes that seeking further into
+      // the future will help
+      if (DEBUG_PLAYER_LOGGING)
+        console.warn(
+          `onReady - upping catchup window to ${
+            catchupWindowMs * CATCHUP_WINDOW_BACKOFF
+          }`
+        );
+      this.setState({
+        catchupWindowMs: catchupWindowMs * CATCHUP_WINDOW_BACKOFF,
+      });
+    } else {
+      if (DEBUG_PLAYER_LOGGING) console.warn("onReady - good to go!");
+      // if we're within tolerance, start playing!
+      this.setState({
+        playing: true,
+        // lower catchup window, if it was increased
+        catchupWindowMs: Math.max(
+          CATCHUP_WINDOW_INITIAL_MS,
+          catchupWindowMs * CATCHUP_WINDOW_RECOVERY
+        ),
+      });
+    }
+  }
+
   render() {
     const {
       url,
@@ -84,7 +156,7 @@ class Player extends React.Component<Props, State> {
       onBuffering,
       onFinished,
     } = this.props;
-    const { playing, currentSeek, catchupWindowMs } = this.state;
+    const { playing } = this.state;
     if (
       this.state.durationS &&
       this.state.durationS < (nowMs() - startsAtMs) / 1000
@@ -114,12 +186,23 @@ class Player extends React.Component<Props, State> {
         height={0}
         volume={volume}
         onProgress={({ playedSeconds: seekS }) => {
-          this.setState({
-            currentSeek: {
-              firedAtMs: nowMs(),
-              seekS,
-            },
-          });
+          const currentSeek: SyncValue = {
+            firedAtMs: nowMs(),
+            seekS,
+          };
+          const expectedSeekMs = nowMs() - startsAtMs;
+          const currentSeekMs = getSeekMs(currentSeek);
+          const lag = expectedSeekMs - currentSeekMs;
+          if (this.props.onRecordLag) {
+            this.props.onRecordLag(lag);
+          }
+          if (Math.abs(lag) > STREAM_OFFSET_TOLERANCE_MS) {
+            this.syncState(currentSeek);
+          } else {
+            this.setState({
+              currentSeek,
+            });
+          }
         }}
         onBuffer={() => {
           if (DEBUG_PLAYER_LOGGING) console.warn("onBuffer");
@@ -128,68 +211,7 @@ class Player extends React.Component<Props, State> {
           });
           onBuffering();
         }}
-        onReady={() => {
-          const expectedSeekMs = nowMs() - startsAtMs;
-          const currentSeekMs = getSeekMs(currentSeek);
-          if (this.state.currentSeek.seekS < 0) {
-            return;
-          }
-          if (currentSeekMs - expectedSeekMs > STREAM_OFFSET_TOLERANCE_MS) {
-            if (DEBUG_PLAYER_LOGGING)
-              console.warn(
-                "onReady - ready to play, waiting til the correct time"
-              );
-            // if we're outside our tolerance in the positive direction (we've
-            // seeked into the future and are ready) simply wait
-            setTimeout(() => {
-              this.setState({
-                playing: true,
-                currentSeek: {
-                  seekS: expectedSeekMs / 1000,
-                  firedAtMs: expectedSeekMs,
-                },
-                // lower catchup window, if it was increased
-                catchupWindowMs: Math.max(
-                  CATCHUP_WINDOW_INITIAL_MS,
-                  catchupWindowMs * CATCHUP_WINDOW_RECOVERY
-                ),
-              });
-            }, currentSeekMs - expectedSeekMs);
-          } else if (
-            currentSeekMs - expectedSeekMs <
-            -STREAM_OFFSET_TOLERANCE_MS
-          ) {
-            if (DEBUG_PLAYER_LOGGING)
-              console.warn("onReady - we've lagged behind, seeking");
-            // if we're outside our tolerance in the negative direction (we
-            // haven't loaded enough), we need to seek into the future to try to
-            // catch up to the current time
-            this.playerRef.current?.seekTo(
-              (expectedSeekMs + catchupWindowMs) / 1000,
-              "seconds"
-            );
-            // increase the catchup window in hopes that seeking further into
-            // the future will help
-            if (DEBUG_PLAYER_LOGGING)
-              console.warn(
-                `onReady - upping catchup window to ${catchupWindowMs}`
-              );
-            this.setState({
-              catchupWindowMs: catchupWindowMs * CATCHUP_WINDOW_BACKOFF,
-            });
-          } else {
-            if (DEBUG_PLAYER_LOGGING) console.warn("onReady - good to go!");
-            // if we're within tolerance, start playing!
-            this.setState({
-              playing: true,
-              // lower catchup window, if it was increased
-              catchupWindowMs: Math.max(
-                CATCHUP_WINDOW_INITIAL_MS,
-                catchupWindowMs * CATCHUP_WINDOW_RECOVERY
-              ),
-            });
-          }
-        }}
+        onReady={() => this.syncState()}
         onStart={() => {
           if (DEBUG_PLAYER_LOGGING) console.warn("onPlaying");
           onPlaying();
