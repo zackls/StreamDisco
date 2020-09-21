@@ -1,24 +1,31 @@
 import moment from "moment";
 
-let hasRetrievedOffset = false;
+let lastRetrievedOffsetMs = 0;
+const RETRIEVE_OFFSET_INTERVAL = 5 * 1000;
 let offset = 0;
+
+const getServerTime = async () => {
+  const startedAt = moment().valueOf();
+  return fetch("http://worldtimeapi.org/api/ip")
+    .then((val) => val.json())
+    .then((body) => {
+      const now = moment().valueOf();
+      const latency = now - startedAt;
+      const serverTime = moment(body.datetime).valueOf();
+      return serverTime + latency / 2;
+    });
+};
 
 // helpful to have a helper on this so it can be mocked if i ever decide to
 // add unit tests
 export const nowMs = () => {
-  if (!hasRetrievedOffset) {
-    hasRetrievedOffset = true;
-    const startedAt = moment().valueOf();
-    fetch("http://worldtimeapi.org/api/ip")
-      .then((val) => val.json())
-      .then((body) => {
-        offset =
-          (moment(body.datetime).valueOf() -
-            2 * moment().valueOf() +
-            startedAt) /
-          2;
-        console.warn(`my time offset is ${offset}`);
-      });
+  const now = moment().valueOf();
+  if (lastRetrievedOffsetMs + RETRIEVE_OFFSET_INTERVAL < now) {
+    lastRetrievedOffsetMs = now;
+    getServerTime().then((time) => {
+      offset = time - moment().valueOf();
+      console.warn(`my time offset is ${offset}`);
+    });
   }
-  return moment().valueOf() + offset;
+  return now + offset;
 };

@@ -3,7 +3,7 @@ import ReactPlayer from "react-player";
 import { nowMs } from "./now";
 import { DEBUG_PLAYER_LOGGING } from "./debug";
 
-export const STREAM_OFFSET_TOLERANCE_MS = 100;
+export const STREAM_OFFSET_TOLERANCE_MS = 150;
 export const CATCHUP_WINDOW_INITIAL_MS = 1500;
 export const CATCHUP_WINDOW_BACKOFF = 1.5;
 export const CATCHUP_WINDOW_RECOVERY = 0.5;
