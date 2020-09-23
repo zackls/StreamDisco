@@ -22,8 +22,13 @@ interface State {
 }
 
 class Page extends React.Component<Props, State> {
+  startsAtMs: number;
+
   constructor(props: Props) {
     super(props);
+
+    this.startsAtMs = DEBUG_STARTS_ON_REFRESH ? nowMs() : this.props.startsAtMs;
+
     this.state = { status: "waiting for user input", playerLag: 0 };
   }
 
@@ -34,8 +39,6 @@ class Page extends React.Component<Props, State> {
       onClickNext,
       onClickPrev,
     } = this.props;
-
-    let startsAtMs = DEBUG_STARTS_ON_REFRESH ? nowMs() : this.props.startsAtMs;
 
     let centerComponent = null;
     const now = nowMs();
@@ -51,14 +54,14 @@ class Page extends React.Component<Props, State> {
           <h2>Start Listening</h2>
         </Button>
       );
-    } else if (now < startsAtMs) {
+    } else if (now < this.startsAtMs) {
       // rerender in a second to refresh the time
       setTimeout(() => {
         this.forceUpdate();
       }, 1000);
       centerComponent = (
         <div>
-          <h4>Starting {moment(startsAtMs).fromNow()}</h4>
+          <h4>Starting {moment(this.startsAtMs).fromNow()}</h4>
         </div>
       );
     } else {
@@ -81,7 +84,7 @@ class Page extends React.Component<Props, State> {
             <Player
               url={url}
               volume={volume}
-              startsAtMs={startsAtMs}
+              startsAtMs={this.startsAtMs}
               onBuffering={() => {
                 this.setState({
                   status: "buffering",
